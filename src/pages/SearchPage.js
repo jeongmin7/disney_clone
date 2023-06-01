@@ -2,21 +2,23 @@ import axios from "../api/axios";
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./SearchPage.css";
+import { useDebounce } from "../hooks/useDebounce";
 
 const SearchPage = () => {
   const [searchResults, setSearchResults] = useState([]);
   const navigate = useNavigate();
-
   const useQuery = () => {
     return new URLSearchParams(useLocation().search);
   };
   let query = useQuery();
   const searchTerm = query.get("q");
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
   useEffect(() => {
-    if (searchTerm) {
-      fetchSearchMovie(searchTerm);
+    if (debouncedSearchTerm) {
+      fetchSearchMovie(debouncedSearchTerm);
     }
-  }, [searchTerm]);
+  }, [debouncedSearchTerm]);
 
   const fetchSearchMovie = async (searchTerm) => {
     try {
@@ -24,11 +26,8 @@ const SearchPage = () => {
         `/search/multi?include_adult=false&query=${searchTerm}`
       );
       setSearchResults(request.data.results);
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (error) {}
   };
-  console.log(searchResults);
   if (searchResults.length > 0) {
     return (
       <section className="search-container">
